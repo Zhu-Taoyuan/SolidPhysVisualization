@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QMainWindow, QFrame, QApplication, QLabel, QHBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QFrame, QApplication, QLabel, QHBoxLayout, QGridLayout
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtGui
 import pyqtgraph as pg
@@ -10,13 +10,16 @@ class Plugin():
         super().__init__()
 
     def setUpUI(self, gridLayout):
-        """设置frame上的UI，GUI程序提供一个空白的QFrame对象，所有展示程序都在该Frame上进行
+        """设置frame上的UI，GUI程序提供一个空白的GridLayout对象，所有展示程序都在该GridLayout上进行
 
         Args:
-            frame (QFrame): 展示程序的画布
+            gridLayout (GridLayout): 程序的网格布局对象
         """
+        frame = QFrame()
+        gridLayout.addWidget(frame)
+        self._gridLayout = QGridLayout(frame)
         self._pgLayout = pg.GraphicsLayoutWidget(border=(100,100,100))
-        gridLayout.addWidget(self._pgLayout,0,0)
+        self._gridLayout.addWidget(self._pgLayout,0,0)
         self._pgLayout.addLabel("长波近似下的声学波",col=0, colspan=4)
         self._pgLayout.nextRow()
         self._p1 = self._pgLayout.addPlot(title = "波动动画")
@@ -38,7 +41,7 @@ class Plugin():
         label.setText("M(红):m(蓝)：")
         hBox.addWidget(label)
         hBox.addWidget(self._spinBox)
-        gridLayout.addLayout(hBox,1,0)
+        self._gridLayout.addLayout(hBox,1,0)
         #常数定义
         self._m = 1
         self._M = 1  
@@ -79,6 +82,8 @@ class Plugin():
         self._timer.start(50)
     
     def stop(self):
+        """停止展示程序，主要处理演示动画时，定时器停止的问题
+        """
         self._timer.stop()
         self._p1.clear()
         self._p2.clear()
@@ -95,6 +100,8 @@ class Plugin():
         return info
 
     def _update(self):
+        """动画刷新程序
+        """
         #声学
         xSound = self._A*np.cos(self._q*self._xMInit+self._omega*self._time)
         xMSound = self._xMInit + xSound
@@ -130,6 +137,11 @@ class Plugin():
         self._time += 1
     
     def _valueChangedHandle(self, value):
+        """输入框数据改变的槽函数
+
+        Args:
+            value (float): 输入框的值
+        """
         self._M = value*self._m
         self.stop()
         self.run()
