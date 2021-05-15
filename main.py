@@ -1,6 +1,6 @@
 import sys, pathlib,json
 from PyQt5.QtWidgets import QMainWindow, QApplication
-from MainWindowSet import MainWindowSet
+from src.MainWindowSet import MainWindowSet
 
 def getPluginDict():
     settingPath = pathlib.Path("./settings.json")
