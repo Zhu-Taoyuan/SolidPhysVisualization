@@ -1,6 +1,6 @@
 import sys, pathlib, PyQt5, os, shutil
 from PyQt5.QtWidgets import QMainWindow, qApp, QApplication, QTreeWidgetItem, QHBoxLayout, QLabel, QAction, QMenu, QMessageBox, QFileDialog
-from src import Ui_MainWindow
+from src import Ui_MainWindow, DelPluginSet
 import qdarkstyle
 from itertools import chain
 from pypinyin import pinyin, Style
@@ -15,6 +15,7 @@ class MainWindowSet(object):
         dirname = pathlib.Path(PyQt5.__file__).parent
         plugin_path = dirname.joinpath("Qt5","plugins", "platforms")
         os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = str(plugin_path)
+        cls._currentWorkDir = str(pathlib.Path.cwd())
         #加载黑色主题
         darkStylesheet = qdarkstyle.load_stylesheet_pyqt5()
         qApp.setStyleSheet(darkStylesheet)
@@ -98,19 +99,35 @@ class MainWindowSet(object):
 
     @classmethod
     def _updatePluginsHandle(cls):
-        currentWorkDir = str(pathlib.Path.cwd())
-        filePath,_ = QFileDialog.getOpenFileName(cls._mainWindow, "选择插件", currentWorkDir, "Python文件(*.py)")
+        """更新或删除插件
+        """
+        filePath,_ = QFileDialog.getOpenFileName(cls._mainWindow, "选择插件", cls._currentWorkDir, "Python文件(*.py)")
         if filePath :
             filePath = pathlib.Path(filePath)
             fileDir = filePath.parents[0]
             pluginName = filePath.stem
-            pluginDir = pathlib.Path(currentWorkDir).joinpath("scripts",pluginName)
+            pluginDir = pathlib.Path(cls._currentWorkDir).joinpath("scripts",pluginName)
             #将插件同目录的文件全部拷贝到scripts下的与插件名相同的文件夹下
             if pluginDir.exists():
-                reply = QMessageBox().question(cls._mainWindow,"询问","选择的插件已经存在，是否替换已有的插件?", QMessageBox.Yes|QMessageBox.No)
-                if reply == QMessageBox.Yes:
-                    shutil.rmtree(str(pluginDir))
-                    shutil.copytree(str(fileDir), str(pluginDir))
+                if str(fileDir) != str(pluginDir):
+                    messageBox = QMessageBox(cls._mainWindow)
+                    messageBox.setWindowTitle("询问")
+                    messageBox.setText("选择的插件已经存在，是否替换已有的插件?")
+                    messageBox.setIcon(QMessageBox.Question)
+                    messageBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                    buttonY = messageBox.button(QMessageBox.Yes)
+                    buttonY.setText("确定")
+                    buttonN = messageBox.button(QMessageBox.No)
+                    buttonN.setText("取消")
+                    messageBox.exec_()
+                    if messageBox.clickedButton() == buttonY:
+                        shutil.rmtree(str(pluginDir))
+                        shutil.copytree(str(fileDir), str(pluginDir))
+
+                    # reply = QMessageBox().question(cls._mainWindow,"询问","选择的插件已经存在，是否替换已有的插件?", QMessageBox.Yes|QMessageBox.No)
+                    # if reply == QMessageBox.Yes:
+                    #     shutil.rmtree(str(pluginDir))
+                    #     shutil.copytree(str(fileDir), str(pluginDir))
             else:
                 shutil.copytree(str(fileDir), str(pluginDir))
             plugin = cls._getPluginClass(pluginName)
@@ -121,8 +138,27 @@ class MainWindowSet(object):
 
     @classmethod
     def _deletePluginsHandle(cls):
-        pass
-
+        """卸载插件
+        """
+        deletePlugins = DelPluginSet.getDeletePlugins(cls._pluginDict)
+        for plugin in deletePlugins:
+            cls._pluginDict.pop(plugin)
+        messageBox = QMessageBox(cls._mainWindow)
+        messageBox.setWindowTitle("询问")
+        messageBox.setText("是否删除插件对应的源文件?")
+        messageBox.setIcon(QMessageBox.Question)
+        messageBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        buttonY = messageBox.button(QMessageBox.Yes)
+        buttonY.setText("是")
+        buttonN = messageBox.button(QMessageBox.No)
+        buttonN.setText("否")
+        messageBox.exec_()
+        if messageBox.clickedButton() == buttonY:
+            for plugin in deletePlugins:
+                pluginDir = pathlib.Path(cls._currentWorkDir).joinpath("scripts",plugin)
+                shutil.rmtree(str(pluginDir))
+        cls._stopPlugin()
+        cls._showPlugin()
     @classmethod
     def _helpPluginsHandle(cls):
         pass
@@ -175,6 +211,8 @@ class MainWindowSet(object):
     
     @classmethod
     def _showPlugin(cls):
+        """加载欢迎和插件界面
+        """
         cls._mainWindowUI.treeWidget.clear()
         cls._setWelcome()
         cls._setWelcomeFrameUI()
