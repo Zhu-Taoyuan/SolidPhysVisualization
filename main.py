@@ -1,6 +1,8 @@
 import sys, pathlib,json
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from src.MainWindowSet import MainWindowSet
+import ctypes
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("myAppid")
 
 def getPluginDict():
     settingPath = pathlib.Path("./settings.json")

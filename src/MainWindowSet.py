@@ -1,6 +1,7 @@
 import sys, pathlib, PyQt5, os, shutil
-from PyQt5.QtWidgets import QMainWindow, qApp, QApplication, QTreeWidgetItem, QHBoxLayout, QLabel, QAction, QMenu, QMessageBox, QFileDialog
-from src import Ui_MainWindow, DelPluginSet
+from PyQt5.QtWidgets import QMainWindow, qApp, QApplication, QTreeWidgetItem, QLabel, QAction, QMessageBox, QFileDialog
+from PyQt5.QtGui import  QIcon
+from src import Ui_MainWindow, DelPluginSet, PluginHelpSet, AboutDialogSet
 import qdarkstyle
 from itertools import chain
 from pypinyin import pinyin, Style
@@ -15,13 +16,17 @@ class MainWindowSet(object):
         dirname = pathlib.Path(PyQt5.__file__).parent
         plugin_path = dirname.joinpath("Qt5","plugins", "platforms")
         os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = str(plugin_path)
-        cls._currentWorkDir = str(pathlib.Path.cwd())
+        currentWorkDir = pathlib.Path.cwd()
+        cls._currentWorkDir = str(currentWorkDir)
         #加载黑色主题
         darkStylesheet = qdarkstyle.load_stylesheet_pyqt5()
         qApp.setStyleSheet(darkStylesheet)
         #加载UI组件
         cls._mainWindowUI = Ui_MainWindow()
         cls._mainWindowUI.setupUi(mainWindow)
+        cls._mainWindow.setWindowTitle('SolidPhysVisualization')
+        iconDir = str(currentWorkDir.joinpath("src","icon.ico"))
+        cls._mainWindow.setWindowIcon(QIcon(iconDir))
         cls._mainWindowUI.treeWidget.setRootIsDecorated(False)
         #加载插件
         cls._showPlugin()
@@ -64,7 +69,7 @@ class MainWindowSet(object):
     def _setWelcomeFrameUI(cls):
         """设置欢迎页面的UI
         """
-        label = QLabel("这是欢迎页面，还没做好")
+        label = QLabel('<div align="center"><font size=50><i>Welcome!<i></font><br><br><br><br><br><br><br><br><font size=50>请点击左侧演示程序列表启动演示程序</font></div>')
         cls._mainWindowUI.gridLayout.addWidget(label)
 
     @classmethod
@@ -99,7 +104,7 @@ class MainWindowSet(object):
 
     @classmethod
     def _updatePluginsHandle(cls):
-        """更新或删除插件
+        """更新或升级插件
         """
         filePath,_ = QFileDialog.getOpenFileName(cls._mainWindow, "选择插件", cls._currentWorkDir, "Python文件(*.py)")
         if filePath :
@@ -141,31 +146,33 @@ class MainWindowSet(object):
         """卸载插件
         """
         deletePlugins = DelPluginSet.getDeletePlugins(cls._pluginDict)
-        for plugin in deletePlugins:
-            cls._pluginDict.pop(plugin)
-        messageBox = QMessageBox(cls._mainWindow)
-        messageBox.setWindowTitle("询问")
-        messageBox.setText("是否删除插件对应的源文件?")
-        messageBox.setIcon(QMessageBox.Question)
-        messageBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        buttonY = messageBox.button(QMessageBox.Yes)
-        buttonY.setText("是")
-        buttonN = messageBox.button(QMessageBox.No)
-        buttonN.setText("否")
-        messageBox.exec_()
-        if messageBox.clickedButton() == buttonY:
+        if deletePlugins:
             for plugin in deletePlugins:
-                pluginDir = pathlib.Path(cls._currentWorkDir).joinpath("scripts",plugin)
-                shutil.rmtree(str(pluginDir))
-        cls._stopPlugin()
-        cls._showPlugin()
+                cls._pluginDict.pop(plugin)
+            messageBox = QMessageBox(cls._mainWindow)
+            messageBox.setWindowTitle("询问")
+            messageBox.setText("是否删除插件对应的源文件?")
+            messageBox.setIcon(QMessageBox.Question)
+            messageBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            buttonY = messageBox.button(QMessageBox.Yes)
+            buttonY.setText("是")
+            buttonN = messageBox.button(QMessageBox.No)
+            buttonN.setText("否")
+            messageBox.exec_()
+            if messageBox.clickedButton() == buttonY:
+                for plugin in deletePlugins:
+                    pluginDir = pathlib.Path(cls._currentWorkDir).joinpath("scripts",plugin)
+                    shutil.rmtree(str(pluginDir))
+            cls._stopPlugin()
+            cls._showPlugin()
     @classmethod
     def _helpPluginsHandle(cls):
-        pass
+        PluginHelpSet.showHelp(cls._pluginDict)
 
     @classmethod
     def _aboutHandle(cls):
-        pass
+        helpText = '<b>这是帮助信息！</b> <a href="http://www.baidu.com">baidu.com</a>'
+        AboutDialogSet.showHelp(helpText)
 
     @classmethod
     def _sortPluginName(cls):
