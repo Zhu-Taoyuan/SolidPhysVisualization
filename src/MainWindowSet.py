@@ -25,8 +25,7 @@ class MainWindowSet(object):
         cls._mainWindowUI = Ui_MainWindow()
         cls._mainWindowUI.setupUi(mainWindow)
         cls._mainWindow.setWindowTitle('SolidPhysVisualization')
-        iconDir = str(currentWorkDir.joinpath("src","icon.ico"))
-        cls._mainWindow.setWindowIcon(QIcon(iconDir))
+        cls._mainWindow.setWindowIcon(QIcon(":ico/icon.ico"))
         cls._mainWindowUI.treeWidget.setRootIsDecorated(False)
         #加载插件
         cls._showPlugin()
@@ -171,7 +170,11 @@ class MainWindowSet(object):
 
     @classmethod
     def _aboutHandle(cls):
-        helpText = '<b>这是帮助信息！</b> <a href="http://www.baidu.com">baidu.com</a>'
+        helpText = '此程序由电子科技大学物理学院2018级朱韬远编写(<a href="https://github.com/Zhu-Taoyuan">github首页</a>)。\
+            此程序源于固体物理课设，主要用于固体物理可视化脚本的展示。\
+            此代码以<a href="https://choosealicense.com/licenses/gpl-3.0/">GPLv3协议开源</a>，\
+            源代码存放在<a href="https://github.com/Zhu-Taoyuan/SolidPhysVisualization">此github仓库</a>。\
+            欢迎大家issue，如果您觉得有用，也希望能够点一个star。'
         AboutDialogSet.showHelp(helpText)
 
     @classmethod

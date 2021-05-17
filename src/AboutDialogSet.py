@@ -1,17 +1,21 @@
-import sys, pathlib
+import sys
 from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QDialogButtonBox
 from PyQt5.QtGui import QDesktopServices, QIcon
 from src import Ui_AboutDialog
 
+
 class AboutDialogSet:
     @classmethod
     def showHelp(cls, helpText):
+        """显示帮助文本
+
+        Args:
+            helpText (str): 帮助文本
+        """
         cls._dialog = QDialog()
         cls._dialogSet = Ui_AboutDialog()
         cls._dialogSet.setupUi(cls._dialog)
-        currentWorkDir = pathlib.Path.cwd()
-        iconDir = str(currentWorkDir.joinpath("src","icon.ico"))
-        cls._dialog.setWindowIcon(QIcon(iconDir))
+        cls._dialog.setWindowIcon(QIcon(":ico/icon.ico"))
         cls._dialog.setWindowTitle("关于本程序")
         #设置textBrowser
         cls._dialogSet.textBrowser.setText(helpText)
@@ -24,6 +28,11 @@ class AboutDialogSet:
     
     @classmethod
     def _anchorClickedHandle(cls, url):
+        """超链接被点击的槽函数
+
+        Args:
+            url (QUrl):被点击的超链接 
+        """
         QDesktopServices.openUrl(url)
 
 if __name__ == "__main__":

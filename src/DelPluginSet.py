@@ -1,4 +1,4 @@
-import sys, pathlib
+import sys
 from PyQt5.QtWidgets import QDialog, QApplication, QDialogButtonBox, QMainWindow, QAbstractItemView
 from PyQt5.QtGui import  QIcon
 from src import Ui_Dialog
@@ -18,9 +18,7 @@ class DelPluginSet(object):
         cls._dialog = QDialog()
         cls._dialogSet = Ui_Dialog()
         cls._dialogSet.setupUi(cls._dialog)
-        currentWorkDir = pathlib.Path.cwd()
-        iconDir = str(currentWorkDir.joinpath("src","icon.ico"))
-        cls._dialog.setWindowIcon(QIcon(iconDir))
+        cls._dialog.setWindowIcon(QIcon(":ico/icon.ico"))
         cls._dialog.setWindowTitle("卸载插件")
         #类字段
         cls._pluginDict = pluginDict
