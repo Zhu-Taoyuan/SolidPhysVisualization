@@ -1,0 +1,5 @@
+pyqtgraph==0.12.1
+numpy==1.20.2
+pypinyin==0.41.0
+QDarkStyle==3.0.2
+PyQt5==5.15.4
